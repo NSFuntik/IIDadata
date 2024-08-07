@@ -9,7 +9,7 @@ import Foundation
 
 // MARK: - AddressSuggestionQuery
 
-/// AddressSuggestionQuery represents an serializable object used to perform certain queries.
+/// `AddressSuggestionQuery` represents an serializable object used to perform certain queries.
 public class AddressSuggestionQuery: Encodable, DadataQueryProtocol {
   // Nested Types
 

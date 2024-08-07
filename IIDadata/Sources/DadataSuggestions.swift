@@ -1,6 +1,5 @@
 import Foundation
 
-/// DadataSuggestions performs all the interactions with Dadata API.
 public class DadataSuggestions {
   // Static Properties
 
@@ -41,7 +40,7 @@ public class DadataSuggestions {
   /// May throw if request is timed out.
   public convenience init(apiKey: String, checkWithTimeout timeout: Int) throws {
     self.init(apiKey: apiKey)
-    try checkAPIConnectivity(timeout: timeout)
+    Task { try await checkAPIConnectivity(timeout: timeout) }
   }
 
   /// New instance of DadataSuggestions.
@@ -67,7 +66,10 @@ public class DadataSuggestions {
   public static func shared(apiKey: String? = nil) throws -> DadataSuggestions {
     if let instance = sharedInstance, instance.apiKey == apiKey || apiKey == nil { return instance }
 
-    if let key = apiKey { sharedInstance = DadataSuggestions(apiKey: key); return sharedInstance! }
+    if let key = apiKey {
+      sharedInstance = DadataSuggestions(apiKey: key)
+      return sharedInstance!
+    }
 
     let key = try readAPIKeyFromPlist()
     sharedInstance = DadataSuggestions(apiKey: key)
@@ -90,10 +92,9 @@ public class DadataSuggestions {
   /// Basic address suggestions request with only rquired data.
   ///
   /// - Parameter query: Query string to send to API. String of a free-form e.g. address part.
-  /// - Parameter completion: Result handler.
-  /// - Parameter result: result of address suggestion query.
-  public func suggestAddress(_ query: String, completion: @escaping (_ result: Result<AddressSuggestionResponse, Error>) -> Void) {
-    suggestAddress(AddressSuggestionQuery(query), completion: completion)
+  /// - Returns:``AddressSuggestionResponse`` - result of address suggestion query.
+  public func suggestAddress(_ query: String) async throws -> AddressSuggestionResponse {
+    try await suggestAddress(AddressSuggestionQuery(query))
   }
 
   /// Address suggestions request.
@@ -113,19 +114,18 @@ public class DadataSuggestions {
   /// - Parameter upperScaleLimit: Bigger `ScaleLevel` object in pair of scale limits.
   /// - Parameter lowerScaleLimit: Smaller `ScaleLevel` object in pair of scale limits.
   /// - Parameter trimRegionResult: Remove region and city names from suggestion top level.
-  /// - Parameter completion: Result handler.
-  /// - Parameter result: result of address suggestion query.
-  public func suggestAddress(_ query: String,
-                             queryType: AddressQueryType = .address,
-                             resultsCount: Int? = 10,
-                             language: QueryResultLanguage? = nil,
-                             constraints: [AddressQueryConstraint]? = nil,
-                             regionPriority: [RegionPriority]? = nil,
-                             upperScaleLimit: ScaleLevel? = nil,
-                             lowerScaleLimit: ScaleLevel? = nil,
-                             trimRegionResult: Bool = false,
-                             completion: @escaping (_ result: Result<AddressSuggestionResponse, Error>) -> Void)
-  {
+  /// - Returns:``AddressSuggestionResponse`` - result of address suggestion query.
+  public func suggestAddress(
+    _ query: String,
+    queryType: AddressQueryType = .address,
+    resultsCount: Int? = 10,
+    language: QueryResultLanguage? = nil,
+    constraints: [AddressQueryConstraint]? = nil,
+    regionPriority: [RegionPriority]? = nil,
+    upperScaleLimit: ScaleLevel? = nil,
+    lowerScaleLimit: ScaleLevel? = nil,
+    trimRegionResult: Bool = false
+  ) async throws -> AddressSuggestionResponse {
     let suggestionQuery = AddressSuggestionQuery(query, ofType: queryType)
 
     suggestionQuery.resultsCount = resultsCount
@@ -133,10 +133,10 @@ public class DadataSuggestions {
     suggestionQuery.constraints = constraints
     suggestionQuery.regionPriority = regionPriority
     suggestionQuery.upperScaleLimit = upperScaleLimit != nil ? ScaleBound(value: upperScaleLimit) : nil
-    suggestionQuery.lowerScaleLimit = upperScaleLimit != nil ? ScaleBound(value: lowerScaleLimit) : nil
+    suggestionQuery.lowerScaleLimit = lowerScaleLimit != nil ? ScaleBound(value: lowerScaleLimit) : nil
     suggestionQuery.trimRegionResult = trimRegionResult
 
-    suggestAddress(suggestionQuery, completion: completion)
+    return try await suggestAddress(suggestionQuery)
   }
 
   /// Address suggestions request.
@@ -166,64 +166,60 @@ public class DadataSuggestions {
   /// `house` — Дом,
   /// `country` — Страна,
   /// - Parameter trimRegionResult: Remove region and city names from suggestion top level.
-  /// - Parameter completion: Result handler.
-  /// - Parameter result: result of address suggestion query.
-  public func suggestAddress(_ query: String,
-                             queryType: AddressQueryType = .address,
-                             resultsCount: Int? = 10,
-                             language: String? = nil,
-                             constraints: [String]? = nil,
-                             regionPriority: [String]? = nil,
-                             upperScaleLimit: String? = nil,
-                             lowerScaleLimit: String? = nil,
-                             trimRegionResult: Bool = false,
-                             completion: @escaping (_ result: Result<AddressSuggestionResponse, Error>) -> Void)
-  {
-    let queryConstraints: [AddressQueryConstraint]? = constraints?.compactMap {
+  /// - Returns:``AddressSuggestionResponse`` - result of address suggestion query.
+  /// - Throws: ``DadataError`` if something went wrong.
+  public func suggestAddress(
+    _ query: String,
+    queryType: AddressQueryType = .address,
+    resultsCount: Int? = 10,
+    language: String? = nil,
+    constraints: [String]? = nil,
+    regionPriority: [String]? = nil,
+    upperScaleLimit: String? = nil,
+    lowerScaleLimit: String? = nil,
+    trimRegionResult: Bool = false
+  ) async throws -> AddressSuggestionResponse {
+    let queryConstraints: [AddressQueryConstraint]? = try constraints?.compactMap {
       if let data = $0.data(using: .utf8) {
-        return try? JSONDecoder().decode(AddressQueryConstraint.self, from: data)
+        return try JSONDecoder().decode(AddressQueryConstraint.self, from: data)
       }
       return nil
     }
-    let prefferedRegions: [RegionPriority]? = regionPriority?.compactMap { RegionPriority(kladr_id: $0) }
+    let preferredRegions: [RegionPriority]? = regionPriority?.compactMap { RegionPriority(kladr_id: $0) }
 
-    suggestAddress(query,
-                   queryType: queryType,
-                   resultsCount: resultsCount,
-                   language: QueryResultLanguage(rawValue: language ?? "ru"),
-                   constraints: queryConstraints,
-                   regionPriority: prefferedRegions,
-                   upperScaleLimit: ScaleLevel(rawValue: upperScaleLimit ?? "*"),
-                   lowerScaleLimit: ScaleLevel(rawValue: lowerScaleLimit ?? "*"),
-                   trimRegionResult: trimRegionResult,
-                   completion: completion)
+    return try await suggestAddress(query,
+                                    queryType: queryType,
+                                    resultsCount: resultsCount,
+                                    language: QueryResultLanguage(rawValue: language ?? "ru"),
+                                    constraints: queryConstraints,
+                                    regionPriority: preferredRegions,
+                                    upperScaleLimit: ScaleLevel(rawValue: upperScaleLimit ?? "*"),
+                                    lowerScaleLimit: ScaleLevel(rawValue: lowerScaleLimit ?? "*"),
+                                    trimRegionResult: trimRegionResult)
   }
 
   /// Basic address suggestions request to only search in FIAS database: less matches, state provided address data only.
   ///
   /// - Parameter query: Query string to send to API. String of a free-form e.g. address part.
-  /// - Parameter completion: Result handler.
-  /// - Parameter result: result of address suggestion query.
-  public func suggestAddressFromFIAS(_ query: String, completion: @escaping (_ result: Result<AddressSuggestionResponse, Error>) -> Void) {
-    suggestAddress(AddressSuggestionQuery(query, ofType: .fiasOnly), completion: completion)
+  /// - Returns:``AddressSuggestionResponse`` - result: result of address suggestion query.
+  public func suggestAddressFromFIAS(_ query: String) async throws -> AddressSuggestionResponse {
+    try await suggestAddress(AddressSuggestionQuery(query, ofType: .fiasOnly))
   }
 
   /// Basic address suggestions request takes KLADR or FIAS ID as a query parameter to lookup additional data.
   ///
   /// - Parameter query: KLADR or FIAS ID.
-  /// - Parameter completion: Result handler.
-  /// - Parameter result: result of address suggestion query.
-  public func suggestByKLADRFIAS(_ query: String, completion: @escaping (_ result: Result<AddressSuggestionResponse, Error>) -> Void) {
-    suggestAddress(AddressSuggestionQuery(query, ofType: .findByID), completion: completion)
+  /// - Returns:``AddressSuggestionResponse`` - result: result of address suggestion query.
+  public func suggestByKLADRFIAS(_ query: String) async throws -> AddressSuggestionResponse {
+    try await suggestAddress(AddressSuggestionQuery(query, ofType: .findByID))
   }
 
   /// Address suggestion request with custom `AddressSuggestionQuery`.
   ///
   /// - Parameter query: Query object.
-  /// - Parameter completion: Result handler.
-  /// - Parameter result: result of address suggestion query.
-  public func suggestAddress(_ query: AddressSuggestionQuery, completion: @escaping (_ result: Result<AddressSuggestionResponse, Error>) -> Void) {
-    fetchResponse(withQuery: query, completionHandler: completion)
+  /// - Returns:``AddressSuggestionResponse`` - result of address suggestion query.
+  public func suggestAddress(_ query: AddressSuggestionQuery) async throws -> AddressSuggestionResponse {
+    try await fetchResponse(withQuery: query)
   }
 
   /// Reverse Geocode request with latitude and longitude as a single string.
@@ -236,21 +232,19 @@ public class DadataSuggestions {
   /// including latitude and longitude. `20` is a maximum value.
   /// - Parameter language: Suggested results in "ru" — Russian or "en" — English.
   /// - Parameter searchRadius: Radius to suggest objects nearest to coordinates point.
-  /// - Parameter completion: Result handler.
-  /// - Parameter result: result of reverse geocode query.
+  /// - Returns:``AddressSuggestionResponse`` - result of address suggestion query.
   public func reverseGeocode(query: String,
-                             delimeter: Character = ",",
+                             delimiter: Character = ",",
                              resultsCount: Int? = 10,
                              language: String? = "ru",
-                             searchRadius: Int? = nil,
-                             completion: @escaping (_ result: Result<AddressSuggestionResponse, Error>) -> Void) throws
+                             searchRadius: Int? = nil) async throws -> AddressSuggestionResponse
   {
-    let geoquery = try ReverseGeocodeQuery(query: query, delimeter: delimeter)
+    let geoquery = try ReverseGeocodeQuery(query: query, delimeter: delimiter)
     geoquery.resultsCount = resultsCount
     geoquery.language = QueryResultLanguage(rawValue: language ?? "ru")
     geoquery.searchRadius = searchRadius
 
-    reverseGeocode(geoquery, completion: completion)
+    return try await reverseGeocode(geoquery)
   }
 
   /// Reverse Geocode request with latitude and longitude as a single string.
@@ -261,53 +255,39 @@ public class DadataSuggestions {
   /// including latitude and longitude. `20` is a maximum value.
   /// - Parameter language: Suggested results may be in Russian or English.
   /// - Parameter searchRadius: Radius to suggest objects nearest to coordinates point.
-  /// - Parameter completion: Result handler.
-  /// - Parameter result: result of reverse geocode query.
+  /// - Returns:``AddressSuggestionResponse`` - result of address suggestion query.
   public func reverseGeocode(latitude: Double,
                              longitude: Double,
                              resultsCount: Int? = 10,
                              language: QueryResultLanguage? = nil,
-                             searchRadius: Int? = nil,
-                             completion: @escaping (_ result: Result<AddressSuggestionResponse, Error>) -> Void)
+                             searchRadius: Int? = nil) async throws -> AddressSuggestionResponse
   {
     let geoquery = ReverseGeocodeQuery(latitude: latitude, longitude: longitude)
     geoquery.resultsCount = resultsCount
     geoquery.language = language
     geoquery.searchRadius = searchRadius
 
-    fetchResponse(withQuery: geoquery, completionHandler: completion)
+    return try await fetchResponse(withQuery: geoquery)
   }
 
   /// Reverse geocode request with custom `ReverseGeocodeQuery`.
   ///
   /// - Parameter query: Query object.
-  /// - Parameter completion: Result handler.
-  /// - Parameter result: result of reverse geocode query.
-  public func reverseGeocode(_ query: ReverseGeocodeQuery, completion: @escaping (_ result: Result<AddressSuggestionResponse, Error>) -> Void) {
-    fetchResponse(withQuery: query, completionHandler: completion)
+  /// - Returns:``AddressSuggestionResponse`` - result of address suggestion query.
+  public func reverseGeocode(_ query: ReverseGeocodeQuery) async throws -> AddressSuggestionResponse {
+    try await fetchResponse(withQuery: query)
   }
 
-  private func checkAPIConnectivity(timeout: Int) throws {
+  private func checkAPIConnectivity(timeout: Int) async throws {
     var request = createRequest(url: suggestionsAPIURL.appendingPathComponent(Constants.addressEndpoint))
     request.timeoutInterval = TimeInterval(timeout)
+    let (data, response) = try await URLSession.shared.data(for: request)
 
-    let semaphore = DispatchSemaphore(value: 0)
-    var errorValue: Error?
-
-    let session = URLSession.shared
-    session.dataTask(with: request) { [weak self] data, response, error in
-      defer { semaphore.signal() }
-      if error != nil { errorValue = error; return }
-      if let response = (response as? HTTPURLResponse), (200 ... 299 ~= response.statusCode) == false {
-        errorValue = self?.nonOKResponseToError(response: response, body: data)
-        return
-      }
-    }.resume()
-
-    semaphore.wait()
-
-    if let e = errorValue {
-      throw e
+    guard let httpResponse = response as? HTTPURLResponse,
+          (200 ... 299).contains(httpResponse.statusCode)
+    else {
+      throw nonOKResponseToError(response: (response as? HTTPURLResponse) ?? .init(), body: data)
+//      NSError(domain: "HTTP Error", code: (response as? HTTPURLResponse)?.statusCode ?? 0, userInfo: nil)
     }
   }
 
@@ -330,32 +310,20 @@ public class DadataSuggestions {
     return NSError(domain: "HTTP Status \(HTTPURLResponse.localizedString(forStatusCode: code))", code: code, userInfo: info)
   }
 
-  private func fetchResponse<T>(withQuery query: DadataQueryProtocol, completionHandler completion: @escaping (Result<T, Error>) -> Void) where T: Decodable {
+  private func fetchResponse<T: Decodable>(withQuery query: DadataQueryProtocol) async throws -> T {
     var request = createRequest(url: suggestionsAPIURL.appendingPathComponent(query.queryEndpoint()))
-    request.httpBody = try? query.toJSON()
-    let session = URLSession.shared
-    session.dataTask(with: request) { data, response, error in
+    request.httpBody = try query.toJSON()
 
-      if let error = error {
-        completion(.failure(error))
-        return
-      }
-      if let response = (response as? HTTPURLResponse), (200 ... 299 ~= response.statusCode) == false {
-        completion(.failure(NSError(domain: "Dadata HTTP response", code: response.statusCode, userInfo: ["description": response.description])))
-        return
-      }
-      guard let data = data else {
-        completion(.failure(NSError(domain: "Dadata HTTP response", code: -1, userInfo: ["description": "missing data in response"])))
-        return
-      }
-      do {
-        let result = try JSONDecoder().decode(T.self, from: data)
-        completion(.success(result))
-        return
-      } catch let e {
-        completion(.failure(e))
-        return
-      }
-    }.resume()
+    let (data, response) = try await URLSession.shared.data(for: request)
+
+    guard let httpResponse = response as? HTTPURLResponse else {
+      throw NSError(domain: "Invalid response", code: 0, userInfo: nil)
+    }
+
+    guard (200 ... 299).contains(httpResponse.statusCode) else {
+      throw NSError(domain: "HTTP Error", code: httpResponse.statusCode, userInfo: ["description": httpResponse.description])
+    }
+
+    return try JSONDecoder().decode(T.self, from: data)
   }
 }

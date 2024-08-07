@@ -7,6 +7,8 @@
 
 import Foundation
 
+// MARK: - ReverseGeocodeQuery
+
 /// ReverseGeocodeQuery represents an serializable object used to perform reverse geocode queries.
 public class ReverseGeocodeQuery: Encodable, DadataQueryProtocol {
   // Nested Types
@@ -46,7 +48,7 @@ public class ReverseGeocodeQuery: Encodable, DadataQueryProtocol {
     else {
       throw NSError(domain: "Dadata ReverseGeocodeQuery",
                     code: -1,
-                    userInfo: ["description": "Failed to parse coordinates from \(query) uding delimeter \(delimeter)"])
+                    userInfo: ["description": "Failed to parse coordinates from \(query) using delimiter \(delimeter)"])
     }
 
     self.init(latitude: latitude, longitude: longitude)
