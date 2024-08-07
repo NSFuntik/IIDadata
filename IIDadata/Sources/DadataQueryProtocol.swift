@@ -8,8 +8,6 @@
 import Foundation
 
 protocol DadataQueryProtocol {
-    func queryEndpoint() -> String
-    func toJSON() throws -> Data
+  func queryEndpoint() -> String
+  func toJSON() throws -> Data
 }
-
-
