@@ -89,6 +89,23 @@ public class DadataSuggestions {
 
   // Functions
 
+  /// Suggests a list of FIO (Family, Given, and Middle Names) based on the provided query.
+  ///
+  /// This asynchronous method fetches suggestions for FIO (Family, Given, and Middle Names) from a remote server.
+  ///
+  /// - Parameters:
+  ///   - query: A string containing the name or partial name for which suggestions are required.
+  ///   - count: The maximum number of suggestions to return. Defaults to 10 if not specified.
+  /// - Returns: An array of `FioSuggestion` objects matching the query.
+  /// - Throws: An error if the request fails or the server returns an error.
+  ///
+  /// This method constructs a `FioSuggestionQuery` object with the given query and count, then fetches the response
+  /// using the `fetchResponse(withQuery:)` method.
+  public func suggestFIO(_ query: String, count: Int = 10) async throws -> [FioSuggestion] {
+    let suggestionQuery = FioSuggestionQuery(query, count: count, parts: nil, gender: nil)
+    return try await fetchResponse(withQuery: suggestionQuery)
+  }
+
   /// Basic address suggestions request with only rquired data.
   ///
   /// - Parameter query: Query string to send to API. String of a free-form e.g. address part.

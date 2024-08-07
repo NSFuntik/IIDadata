@@ -187,3 +187,4 @@ public struct ScaleBound: Encodable {
 
   public init(value: ScaleLevel?) { self.value = value }
 }
+
