@@ -286,42 +286,28 @@ public class DadataSuggestions {
   ///
   /// This asynchronous method fetches suggestions for FIO (Family, Given, and Middle Names) from a remote server.
   ///
-  /// - Parameters:
-  ///   - query: A string containing the name or partial name for which suggestions are required.
-  ///   - count: The maximum number of suggestions to return. Defaults to 10 if not specified.
+  ///
+  ///   - Parameter query: A string containing the name or partial name for which suggestions are required.
+  ///   - Parameter count: The maximum number of suggestions to return. Defaults to 10 if not specified.
+  ///   - Parameter gender: The `gender` of the person. Defaults to `nil` if not specified.
+  ///   - Parameter parts: Indicates if the `fullname parts` should be returned separately. Defaults to `nil` if not specified.
   /// - Returns: An array of `FioSuggestion` objects matching the query.
   /// - Throws: An error if the request fails or the server returns an error.
   ///
   /// This method constructs a `FioSuggestionQuery` object with the given query and count, then fetches the response
   /// using the `fetchResponse(withQuery:)` method.
-  func suggestFio(
+  public func suggestFio(
     _ query: String,
     count: Int = 10,
     gender: Gender? = nil,
     parts: [FioSuggestionQuery.Part]? = nil
   ) async throws -> [FioSuggestion] {
-    var request = URLRequest(url: URL(string: Constants.fioSuggestionsAPIURL)!)
-    request.httpMethod = "POST"
-    request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-    request.addValue("application/json", forHTTPHeaderField: "Accept")
-    request.addValue("Token " + apiKey, forHTTPHeaderField: "Authorization")
 
 
+    let fioSuggestionQuery = FioSuggestionQuery(query, count: count, parts: parts, gender: gender)
 
-    let fioSuggestionQuery =  FioSuggestionQuery(query, count: count, parts: parts, gender: gender)
-
-    dump(String(data: try JSONEncoder().encode(fioSuggestionQuery), encoding: .utf8) ?? "Unable to decode request body", name: "fioSuggestionQuery")
-    let jsonData = try JSONEncoder().encode(fioSuggestionQuery)
-    request.httpBody = jsonData
-
-    let (data, response) = try await URLSession.shared.data(for: request)
-
-    guard let httpResponse = response as? HTTPURLResponse, (200 ... 299).contains(httpResponse.statusCode) else {
-      throw NSError(domain: "HTTP Error", code: (response as? HTTPURLResponse)?.statusCode ?? 0, userInfo: nil)
-    }
-
-    let fioSuggestions = try JSONDecoder().decode(FioSuggestionResponse.self, from: data).suggestions
-    return fioSuggestions
+    let fioSuggestionResponse: FioSuggestionResponse = try await fetchResponse(withQuery: fioSuggestionQuery)
+    return fioSuggestionResponse.suggestions
   }
 
   func checkAPIConnectivity( /* timeout: Int */ ) async throws {
@@ -340,8 +326,11 @@ public class DadataSuggestions {
   private func createRequest(url: URL) -> URLRequest {
     var request = URLRequest(url: url)
     request.httpMethod = "POST"
-    request.addValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
+    request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+    request.addValue("application/json", forHTTPHeaderField: "Accept")
     request.addValue("Token " + apiKey, forHTTPHeaderField: "Authorization")
+
+    dump(request, name: "Request \(String(data: request.httpBody ?? Data(), encoding: .utf8) ?? "Unable to decode request body")")
     return request
   }
 
@@ -359,7 +348,7 @@ public class DadataSuggestions {
   private func fetchResponse<T: Decodable>(withQuery query: DadataQueryProtocol) async throws -> T {
     var request = createRequest(url: suggestionsAPIURL.appendingPathComponent(query.queryEndpoint()))
     request.httpBody = try query.toJSON()
-    dump(request.httpBody, name: "Request \(String(data: request.httpBody ?? Data(), encoding: .utf8) ?? "Unable to decode request body")")
+    dump( (String(data: request.httpBody ?? Data(), encoding: .utf8)), name: "Request \(T.self)")
     let (data, response) = try await URLSession.shared.data(for: request)
 
     guard let httpResponse = response as? HTTPURLResponse else {

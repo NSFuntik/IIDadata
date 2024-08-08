@@ -9,7 +9,17 @@
     }
   ],
   "defaultOptions" : {
-
+    "environmentVariableEntries" : [
+      {
+        "key" : "IIDadataAPIToken",
+        "value" : ""
+      }
+    ],
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:",
+      "identifier" : "IIDadataTests",
+      "name" : "IIDadataTests"
+    }
   },
   "testTargets" : [
     {

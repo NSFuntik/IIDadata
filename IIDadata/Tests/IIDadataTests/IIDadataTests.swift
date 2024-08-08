@@ -8,9 +8,9 @@ final class DadataSuggestionsTests: XCTestCase {
 
   // Computed Properties
 
+  // Environment Variable is read from Scheme Configuration
   private var apiToken: String {
-    // Replace with your actual Dadata API token
-    return "abadf779d0525bebb9e16b72a97eabf4f7143292"
+    return ProcessInfo.processInfo.environment["IIDadataAPIToken"] ?? ""
   }
 
   // Functions
