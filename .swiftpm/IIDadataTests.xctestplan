@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "F9030ED7-7FF5-4CF2-B852-33FE599D3767",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "IIDadataTests",
+        "name" : "IIDadataTests"
+      }
+    }
+  ],
+  "version" : 1
+}

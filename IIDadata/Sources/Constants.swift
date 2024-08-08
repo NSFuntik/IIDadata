@@ -10,7 +10,10 @@ import Foundation
 // MARK: - Constants
 
 enum Constants {
-  static let suggestionsAPIURL = "https://suggestions.dadata.ru/suggestions/api/4_1/rs/"
+  static let suggestionsAPIURL = "http://suggestions.dadata.ru/suggestions/api/4_1/rs/"
+  static let fioSuggestionsAPIURL = "http://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/fio"
+
+  static let fioEndpoint = "suggest/fio"
   static let addressEndpoint = AddressQueryType.address.rawValue
   static let addressFIASOnlyEndpoint = AddressQueryType.fiasOnly.rawValue
   static let addressByIDEndpoint = AddressQueryType.findByID.rawValue

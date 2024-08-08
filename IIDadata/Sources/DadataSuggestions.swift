@@ -30,7 +30,7 @@ public class DadataSuggestions {
   /// Throws if connection is impossible or request is timed out.
   /// ```
   /// DispatchQueue.global(qos: .background).async {
-  ///    let dadata = try DadataSuggestions(apiKey: "<# Dadata API token #>", checkWithTimeout: 15)
+  ///    let dadata = try DadataSuggestions(apiKey: " ", checkWithTimeout: 15)
   /// }
   /// ```
   /// - Parameter apiKey: Dadata API token. Check it in account settings at dadata.ru.
@@ -38,9 +38,9 @@ public class DadataSuggestions {
   ///
   /// - Throws: May throw on connectivity problems, missing or wrong API token, limits exeeded, wrong endpoint.
   /// May throw if request is timed out.
-  public convenience init(apiKey: String, checkWithTimeout timeout: Int) throws {
-    self.init(apiKey: apiKey)
-    Task { try await checkAPIConnectivity(timeout: timeout) }
+  public convenience init(api: String /* , checkWithTimeout timeout: Int */ ) throws {
+    self.init(apiKey: api)
+    Task { try await checkAPIConnectivity() }
   }
 
   /// New instance of DadataSuggestions.
@@ -88,23 +88,6 @@ public class DadataSuggestions {
   }
 
   // Functions
-
-  /// Suggests a list of FIO (Family, Given, and Middle Names) based on the provided query.
-  ///
-  /// This asynchronous method fetches suggestions for FIO (Family, Given, and Middle Names) from a remote server.
-  ///
-  /// - Parameters:
-  ///   - query: A string containing the name or partial name for which suggestions are required.
-  ///   - count: The maximum number of suggestions to return. Defaults to 10 if not specified.
-  /// - Returns: An array of `FioSuggestion` objects matching the query.
-  /// - Throws: An error if the request fails or the server returns an error.
-  ///
-  /// This method constructs a `FioSuggestionQuery` object with the given query and count, then fetches the response
-  /// using the `fetchResponse(withQuery:)` method.
-  public func suggestFIO(_ query: String, count: Int = 10) async throws -> [FioSuggestion] {
-    let suggestionQuery = FioSuggestionQuery(query, count: count, parts: nil, gender: nil)
-    return try await fetchResponse(withQuery: suggestionQuery)
-  }
 
   /// Basic address suggestions request with only rquired data.
   ///
@@ -204,15 +187,17 @@ public class DadataSuggestions {
     }
     let preferredRegions: [RegionPriority]? = regionPriority?.compactMap { RegionPriority(kladr_id: $0) }
 
-    return try await suggestAddress(query,
-                                    queryType: queryType,
-                                    resultsCount: resultsCount,
-                                    language: QueryResultLanguage(rawValue: language ?? "ru"),
-                                    constraints: queryConstraints,
-                                    regionPriority: preferredRegions,
-                                    upperScaleLimit: ScaleLevel(rawValue: upperScaleLimit ?? "*"),
-                                    lowerScaleLimit: ScaleLevel(rawValue: lowerScaleLimit ?? "*"),
-                                    trimRegionResult: trimRegionResult)
+    return try await suggestAddress(
+      query,
+      queryType: queryType,
+      resultsCount: resultsCount,
+      language: QueryResultLanguage(rawValue: language ?? "ru"),
+      constraints: queryConstraints,
+      regionPriority: preferredRegions,
+      upperScaleLimit: ScaleLevel(rawValue: upperScaleLimit ?? "*"),
+      lowerScaleLimit: ScaleLevel(rawValue: lowerScaleLimit ?? "*"),
+      trimRegionResult: trimRegionResult
+    )
   }
 
   /// Basic address suggestions request to only search in FIAS database: less matches, state provided address data only.
@@ -250,12 +235,13 @@ public class DadataSuggestions {
   /// - Parameter language: Suggested results in "ru" — Russian or "en" — English.
   /// - Parameter searchRadius: Radius to suggest objects nearest to coordinates point.
   /// - Returns:``AddressSuggestionResponse`` - result of address suggestion query.
-  public func reverseGeocode(query: String,
-                             delimiter: Character = ",",
-                             resultsCount: Int? = 10,
-                             language: String? = "ru",
-                             searchRadius: Int? = nil) async throws -> AddressSuggestionResponse
-  {
+  public func reverseGeocode(
+    query: String,
+    delimiter: Character = ",",
+    resultsCount: Int? = 10,
+    language: String? = "ru",
+    searchRadius: Int? = nil
+  ) async throws -> AddressSuggestionResponse {
     let geoquery = try ReverseGeocodeQuery(query: query, delimeter: delimiter)
     geoquery.resultsCount = resultsCount
     geoquery.language = QueryResultLanguage(rawValue: language ?? "ru")
@@ -273,12 +259,13 @@ public class DadataSuggestions {
   /// - Parameter language: Suggested results may be in Russian or English.
   /// - Parameter searchRadius: Radius to suggest objects nearest to coordinates point.
   /// - Returns:``AddressSuggestionResponse`` - result of address suggestion query.
-  public func reverseGeocode(latitude: Double,
-                             longitude: Double,
-                             resultsCount: Int? = 10,
-                             language: QueryResultLanguage? = nil,
-                             searchRadius: Int? = nil) async throws -> AddressSuggestionResponse
-  {
+  public func reverseGeocode(
+    latitude: Double,
+    longitude: Double,
+    resultsCount: Int? = 10,
+    language: QueryResultLanguage? = nil,
+    searchRadius: Int? = nil
+  ) async throws -> AddressSuggestionResponse {
     let geoquery = ReverseGeocodeQuery(latitude: latitude, longitude: longitude)
     geoquery.resultsCount = resultsCount
     geoquery.language = language
@@ -295,9 +282,51 @@ public class DadataSuggestions {
     try await fetchResponse(withQuery: query)
   }
 
-  private func checkAPIConnectivity(timeout: Int) async throws {
-    var request = createRequest(url: suggestionsAPIURL.appendingPathComponent(Constants.addressEndpoint))
-    request.timeoutInterval = TimeInterval(timeout)
+  /// Suggests a list of FIO (Family, Given, and Middle Names) based on the provided query.
+  ///
+  /// This asynchronous method fetches suggestions for FIO (Family, Given, and Middle Names) from a remote server.
+  ///
+  /// - Parameters:
+  ///   - query: A string containing the name or partial name for which suggestions are required.
+  ///   - count: The maximum number of suggestions to return. Defaults to 10 if not specified.
+  /// - Returns: An array of `FioSuggestion` objects matching the query.
+  /// - Throws: An error if the request fails or the server returns an error.
+  ///
+  /// This method constructs a `FioSuggestionQuery` object with the given query and count, then fetches the response
+  /// using the `fetchResponse(withQuery:)` method.
+  func suggestFio(
+    _ query: String,
+    count: Int = 10,
+    gender: Gender? = nil,
+    parts: [FioSuggestionQuery.Part]? = nil
+  ) async throws -> [FioSuggestion] {
+    var request = URLRequest(url: URL(string: Constants.fioSuggestionsAPIURL)!)
+    request.httpMethod = "POST"
+    request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+    request.addValue("application/json", forHTTPHeaderField: "Accept")
+    request.addValue("Token " + apiKey, forHTTPHeaderField: "Authorization")
+
+
+
+    let fioSuggestionQuery =  FioSuggestionQuery(query, count: count, parts: parts, gender: gender)
+
+    dump(String(data: try JSONEncoder().encode(fioSuggestionQuery), encoding: .utf8) ?? "Unable to decode request body", name: "fioSuggestionQuery")
+    let jsonData = try JSONEncoder().encode(fioSuggestionQuery)
+    request.httpBody = jsonData
+
+    let (data, response) = try await URLSession.shared.data(for: request)
+
+    guard let httpResponse = response as? HTTPURLResponse, (200 ... 299).contains(httpResponse.statusCode) else {
+      throw NSError(domain: "HTTP Error", code: (response as? HTTPURLResponse)?.statusCode ?? 0, userInfo: nil)
+    }
+
+    let fioSuggestions = try JSONDecoder().decode(FioSuggestionResponse.self, from: data).suggestions
+    return fioSuggestions
+  }
+
+  func checkAPIConnectivity( /* timeout: Int */ ) async throws {
+    let request = createRequest(url: suggestionsAPIURL.appendingPathComponent(Constants.addressEndpoint))
+//    request.timeoutInterval = TimeInterval(timeout)
     let (data, response) = try await URLSession.shared.data(for: request)
 
     guard let httpResponse = response as? HTTPURLResponse,
@@ -330,7 +359,7 @@ public class DadataSuggestions {
   private func fetchResponse<T: Decodable>(withQuery query: DadataQueryProtocol) async throws -> T {
     var request = createRequest(url: suggestionsAPIURL.appendingPathComponent(query.queryEndpoint()))
     request.httpBody = try query.toJSON()
-
+    dump(request.httpBody, name: "Request \(String(data: request.httpBody ?? Data(), encoding: .utf8) ?? "Unable to decode request body")")
     let (data, response) = try await URLSession.shared.data(for: request)
 
     guard let httpResponse = response as? HTTPURLResponse else {
