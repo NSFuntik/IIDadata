@@ -9,15 +9,19 @@
 
 /// Every single suggestion is represented as AddressSuggestions.
 public struct AddressSuggestion: Suggestion {
+  public static func == (lhs: AddressSuggestion, rhs: AddressSuggestion) -> Bool {
+    lhs.value == rhs.value && lhs.unrestrictedValue == rhs.unrestrictedValue
+  }
+
   /// Address in short format.
-  public let value: String?
+  public let value: String
   /// All the data returned in response to suggestion query.
   public let data: AddressData?
   /// Address in long format with region.
   public let unrestrictedValue: String?
 
   public init(
-    value: String?,
+    value: String,
     data: AddressData?,
     unrestrictedValue: String?
   ) {

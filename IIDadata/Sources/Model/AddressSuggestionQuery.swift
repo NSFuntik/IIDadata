@@ -92,6 +92,7 @@ public enum ScaleLevel: String, Encodable {
   case settlement
   case street
   case house
+  case flat
 }
 
 // MARK: - AddressQueryConstraint

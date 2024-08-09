@@ -23,7 +23,7 @@ public struct FioSuggestion: Encodable, Suggestion {
   public let data: FioData?
 
   /// The suggested FIO value.
-  public let value: String?
+  public let value: String
 
   /// The unrestricted suggested FIO value.
   public let unrestrictedValue: String?
@@ -49,7 +49,7 @@ public struct FioSuggestion: Encodable, Suggestion {
   public init(from decoder: Decoder) throws {
     do {
       let values = try decoder.container(keyedBy: CodingKeys.self)
-      value = try values.decodeIfPresent(String.self, forKey: .value)
+      value = try values.decode(String.self, forKey: .value)
       unrestrictedValue = try values.decodeIfPresent(String.self, forKey: .unrestrictedValue)
       data = try values.decodeIfPresent(FioData.self, forKey: .data)
     } catch {

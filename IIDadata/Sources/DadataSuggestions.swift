@@ -307,6 +307,7 @@ public class DadataSuggestions {
     let fioSuggestionQuery = FioSuggestionQuery(query, count: count, parts: parts, gender: gender)
 
     let fioSuggestionResponse: FioSuggestionResponse = try await fetchResponse(withQuery: fioSuggestionQuery)
+    debugPrint(fioSuggestionResponse)
     return fioSuggestionResponse.suggestions
   }
 
