@@ -7,7 +7,17 @@
 
 // MARK: - FioSuggestion
 
-/// A structure representing a single FIO suggestion.
+/// Every single suggestion is represented as `FioSuggestion`.
+/// - Parameters:
+///   - value` :   ФИО одной строкой
+///   - unrestricted_value` : == value
+///   - data: Detailed FIO data structure.
+///
+///
+/// All the data returned in response to suggestion query.
+///
+/// - SeeAlso: ``FioData``
+/// 
 public struct FioSuggestion: Encodable, Suggestion {
   // Nested Types
 
@@ -25,7 +35,7 @@ public struct FioSuggestion: Encodable, Suggestion {
   /// The suggested FIO value.
   public let value: String
 
-  /// The unrestricted suggested FIO value.
+  /// The unrestricted suggested FIO value. (` == value `)
   public let unrestrictedValue: String?
 
   // Lifecycle

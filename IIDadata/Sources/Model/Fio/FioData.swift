@@ -5,14 +5,14 @@
 //  Created by NSFuntik on 09.08.2024.
 //
 
+import Foundation
+
 public extension FioSuggestion {
   // MARK: - FioData
 
   /// A structure representing detailed FIO data.
   ///
   /// - Parameters:
-  ///   - value` :   ФИОодной строкой
-  ///   - unrestricted_value` : value
   ///   - surname:   Фамилия
   ///   - name:   Имя
   ///   - patronymic:    Отчество

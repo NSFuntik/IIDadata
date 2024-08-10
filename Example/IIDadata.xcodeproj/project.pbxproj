@@ -52,6 +52,7 @@
 		7F635716033EB85D6E45087A /* Pods-IIDadata_Tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-IIDadata_Tests.release.xcconfig"; path = "Target Support Files/Pods-IIDadata_Tests/Pods-IIDadata_Tests.release.xcconfig"; sourceTree = "<group>"; };
 		BB65EEE2EDECA8BF67A58EF2 /* IIDadata.podspec */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = IIDadata.podspec; path = ../IIDadata.podspec; sourceTree = "<group>"; };
 		E749FED1565D30A1C1AC21CB /* Pods_IIDadata_Example.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_IIDadata_Example.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		F5AC60CC2C67A96800ECCF4B /* IntegrationTest.swiftpm */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = IntegrationTest.swiftpm; sourceTree = "<group>"; };
 		FA9B312D3F353E5C59D2145A /* Pods-IIDadata_Example.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-IIDadata_Example.release.xcconfig"; path = "Target Support Files/Pods-IIDadata_Example/Pods-IIDadata_Example.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -78,6 +79,7 @@
 		607FACC71AFB9204008FA782 = {
 			isa = PBXGroup;
 			children = (
+				F5AC60CC2C67A96800ECCF4B /* IntegrationTest.swiftpm */,
 				607FACF51AFB993E008FA782 /* Podspec Metadata */,
 				607FACD21AFB9204008FA782 /* Example for IIDadata */,
 				607FACE81AFB9204008FA782 /* Tests */,

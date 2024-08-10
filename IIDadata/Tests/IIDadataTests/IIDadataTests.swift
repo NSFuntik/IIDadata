@@ -1,7 +1,7 @@
 @testable import IIDadata
 import XCTest
 
-final class DadataSuggestionsTests: XCTestCase {
+final class IIDadataTests: XCTestCase {
   // Properties
 
 //  let apiKey = "abadf779d0525bebb9e16b72a97eabf4f7143292"

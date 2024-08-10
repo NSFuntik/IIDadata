@@ -1,5 +1,6 @@
 import Foundation
 
+@available(iOS 14.0, *)
 public class DadataSuggestions {
   // Static Properties
 
@@ -7,7 +8,10 @@ public class DadataSuggestions {
 
   // Properties
 
+  /// API key for [Dadata](https://dadata.ru/profile/#info).
   private let apiKey: String
+
+  /// Base URL of suggestions API
   private var suggestionsAPIURL: URL
 
   // Lifecycle
@@ -302,27 +306,32 @@ public class DadataSuggestions {
     gender: Gender? = nil,
     parts: [FioSuggestionQuery.Part]? = nil
   ) async throws -> [FioSuggestion] {
-
-
-    let fioSuggestionQuery = FioSuggestionQuery(query, count: count, parts: parts, gender: gender)
-
+    let fioSuggestionQuery = FioSuggestionQuery(
+      query,
+      count: count,
+      parts: parts,
+      gender: gender
+    )
+    debugPrint("FioSuggestionQuery: \n \(fioSuggestionQuery)")
     let fioSuggestionResponse: FioSuggestionResponse = try await fetchResponse(withQuery: fioSuggestionQuery)
     debugPrint(fioSuggestionResponse)
     return fioSuggestionResponse.suggestions
   }
 
-  func checkAPIConnectivity( /* timeout: Int */ ) async throws {
+  func checkAPIConnectivity() async throws {
     let request = createRequest(url: suggestionsAPIURL.appendingPathComponent(Constants.addressEndpoint))
-//    request.timeoutInterval = TimeInterval(timeout)
+
     let (data, response) = try await URLSession.shared.data(for: request)
 
     guard let httpResponse = response as? HTTPURLResponse,
           (200 ... 299).contains(httpResponse.statusCode)
     else {
+      dump(response, name: "API Connectivity Response")
       throw nonOKResponseToError(response: (response as? HTTPURLResponse) ?? .init(), body: data)
-//      NSError(domain: "HTTP Error", code: (response as? HTTPURLResponse)?.statusCode ?? 0, userInfo: nil)
     }
   }
+
+  // MARK: - Private
 
   private func createRequest(url: URL) -> URLRequest {
     var request = URLRequest(url: url)
@@ -349,7 +358,7 @@ public class DadataSuggestions {
   private func fetchResponse<T: Decodable>(withQuery query: DadataQueryProtocol) async throws -> T {
     var request = createRequest(url: suggestionsAPIURL.appendingPathComponent(query.queryEndpoint()))
     request.httpBody = try query.toJSON()
-    dump( (String(data: request.httpBody ?? Data(), encoding: .utf8)), name: "Request \(T.self)")
+    dump(String(data: request.httpBody ?? Data(), encoding: .utf8), name: "Request \(T.self)")
     let (data, response) = try await URLSession.shared.data(for: request)
 
     guard let httpResponse = response as? HTTPURLResponse else {
