@@ -3,7 +3,7 @@
    LastUpgradeVersion = "1600"
    version = "1.7">
    <BuildAction
-      parallelizeBuildables = "YES"
+      parallelizeBuildables = "NO"
       buildImplicitDependencies = "YES"
       buildArchitectures = "Automatic">
       <BuildActionEntries>
@@ -15,9 +15,37 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "IntegrationTest"
-               BuildableName = "IntegrationTest"
-               BlueprintName = "IntegrationTest"
+               BlueprintIdentifier = "IIDadata"
+               BuildableName = "IIDadata"
+               BlueprintName = "IIDadata"
+               ReferencedContainer = "container:../..">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "IIDadataUI"
+               BuildableName = "IIDadataUI"
+               BlueprintName = "IIDadataUI"
+               ReferencedContainer = "container:../..">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "IIDadata SUI"
+               BuildableName = "IIDadata SUI"
+               BlueprintName = "IIDadata SUI"
                ReferencedContainer = "container:">
             </BuildableReference>
          </BuildActionEntry>
@@ -44,12 +72,19 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "IntegrationTest"
-            BuildableName = "IntegrationTest"
-            BlueprintName = "IntegrationTest"
+            BlueprintIdentifier = "IIDadata SUI"
+            BuildableName = "IIDadata SUI"
+            BlueprintName = "IIDadata SUI"
             ReferencedContainer = "container:">
          </BuildableReference>
       </BuildableProductRunnable>
+      <EnvironmentVariables>
+         <EnvironmentVariable
+            key = "IIDadataAPIToken"
+            value = "abadf779d0525bebb9e16b72a97eabf4f7143292"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+      </EnvironmentVariables>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -61,9 +96,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "IntegrationTest"
-            BuildableName = "IntegrationTest"
-            BlueprintName = "IntegrationTest"
+            BlueprintIdentifier = "IIDadata SUI"
+            BuildableName = "IIDadata SUI"
+            BlueprintName = "IIDadata SUI"
             ReferencedContainer = "container:">
          </BuildableReference>
       </BuildableProductRunnable>

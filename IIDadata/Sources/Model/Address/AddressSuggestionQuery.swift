@@ -96,9 +96,9 @@ public enum ScaleLevel: String, Encodable {
 }
 
 // MARK: - AddressQueryConstraint
-
 /// AddressQueryConstraint used to limit search results according to
 /// [Dadata online API documentation](https://confluence.hflabs.ru/pages/viewpage.action?pageId=204669108).
+@available(iOS 14.0, *)
 public struct AddressQueryConstraint: Codable {
   // Properties
 

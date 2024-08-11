@@ -1,7 +1,7 @@
 import Foundation
-
+import protocol Combine.ObservableObject
 @available(iOS 14.0, *)
-public class DadataSuggestions {
+public actor DadataSuggestions: ObservableObject {
   // Static Properties
 
   private static var sharedInstance: DadataSuggestions?
@@ -23,7 +23,7 @@ public class DadataSuggestions {
   /// If DadataSuggestions is used havily consider `DadataSuggestions.shared()` instead.
   /// - Precondition: Token set with "IIDadataAPIToken"  key in Info.plist.
   /// - Throws: Call may throw if there isn't a value for key "IIDadataAPIToken" set in Info.plist.
-  public convenience init() throws {
+  public init() throws {
     let key = try DadataSuggestions.readAPIKeyFromPlist()
     self.init(apiKey: key)
   }
@@ -42,14 +42,14 @@ public class DadataSuggestions {
   ///
   /// - Throws: May throw on connectivity problems, missing or wrong API token, limits exeeded, wrong endpoint.
   /// May throw if request is timed out.
-  public convenience init(api: String /* , checkWithTimeout timeout: Int */ ) throws {
+  public init(api: String /* , checkWithTimeout timeout: Int */ ) throws {
     self.init(apiKey: api)
     Task { try await checkAPIConnectivity() }
   }
 
   /// New instance of DadataSuggestions.
   /// - Parameter apiKey: Dadata API token. Check it in account settings at dadata.ru.
-  public required convenience init(apiKey: String) {
+  public /*required*/ init(apiKey: String) {
     self.init(apiKey: apiKey, url: Constants.suggestionsAPIURL)
   }
 
@@ -119,7 +119,7 @@ public class DadataSuggestions {
   /// - Parameter lowerScaleLimit: Smaller `ScaleLevel` object in pair of scale limits.
   /// - Parameter trimRegionResult: Remove region and city names from suggestion top level.
   /// - Returns:``AddressSuggestionResponse`` - result of address suggestion query.
-  public func suggestAddress(
+  @Sendable public func suggestAddress(
     _ query: String,
     queryType: AddressQueryType = .address,
     resultsCount: Int? = 10,

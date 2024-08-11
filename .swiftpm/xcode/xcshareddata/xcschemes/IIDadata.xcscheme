@@ -66,13 +66,6 @@
             ReferencedContainer = "container:">
          </BuildableReference>
       </MacroExpansion>
-      <EnvironmentVariables>
-         <EnvironmentVariable
-            key = "DaData"
-            value = "abadf779d0525bebb9e16b72a97eabf4f7143292"
-            isEnabled = "YES">
-         </EnvironmentVariable>
-      </EnvironmentVariables>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"

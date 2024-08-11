@@ -7,7 +7,7 @@ import Foundation
 // MARK: - AddressSuggestionResponse
 
 /// AddressSuggestionResponse represents a deserializable object used to hold API response.
-public struct AddressSuggestionResponse: Decodable {
+public struct AddressSuggestionResponse: Decodable, Sendable {
   public let suggestions: [AddressSuggestion]?
 }
 
@@ -16,7 +16,7 @@ public struct AddressSuggestionResponse: Decodable {
 /// Structure holding metro station name, name of a line and distance to suggested address.
 /// If there aren't metro stations nearby or API token used not subscribed to "Maximal" package
 /// `nil` is returned instead.
-public struct Metro: Decodable {
+public struct Metro: Decodable, Sendable {
   // Nested Types
 
   enum CodingKeys: String, CodingKey {

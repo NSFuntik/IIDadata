@@ -72,8 +72,8 @@ public extension FioSuggestion {
       surname: String?,
       name: String?,
       patronymic: String?,
-      gender: Gender?,
-      qc: String?
+      gender: Gender? = nil,
+      qc: String? = nil
     ) {
       self.surname = surname
       self.name = name

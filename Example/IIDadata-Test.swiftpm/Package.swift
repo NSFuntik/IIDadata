@@ -20,7 +20,7 @@ let package = Package(
             teamIdentifier: "UB936SP78M",
             displayVersion: "1.0",
             bundleVersion: "1",
-            appIcon: .placeholder(icon: .calculator),
+            appIcon: .placeholder(icon: .sparkle),
             accentColor: .presetColor(.yellow),
             supportedDeviceFamilies: [
                 .pad,
@@ -31,7 +31,20 @@ let package = Package(
                 .landscapeRight,
                 .landscapeLeft,
                 .portraitUpsideDown(.when(deviceFamilies: [.pad]))
-            ]
+            ],
+            capabilities: [
+                .appTransportSecurity(configuration: .init(
+                    exceptionDomains: [
+                        .init(
+                            domainName: "suggestions.dadata.ru",
+                            includesSubdomains: true,
+                            exceptionAllowsInsecureHTTPLoads: true
+                        )
+                    ]
+                )),
+                .outgoingNetworkConnections()
+            ],
+            appCategory: .developerTools
         )
     ],
     dependencies: [

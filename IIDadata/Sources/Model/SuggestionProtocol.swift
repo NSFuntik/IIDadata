@@ -5,6 +5,7 @@
 //  Created by NSFuntik on 09.08.2024.
 //
 import SwiftUI
+
 // MARK: - Suggestion
 
 /**
@@ -20,28 +21,48 @@ import SwiftUI
  > - ``FioSuggestion``: Помогает человеку быстро ввести ФИО на веб-форме или в приложении
    - SeeAlso: [DaData API documentation](https://dadata.ru/api/suggest/)
  */
-public protocol Suggestion: Decodable, Equatable, Hashable, Identifiable {
-  associatedtype `Data`: Decodable
-  var unrestrictedValue: String? { get }
-  var value: String { get }
-  var data: `Data`? { get }
+public protocol Suggestion: Decodable, Equatable, Hashable, Identifiable, Sendable {
+  typealias Value = String
+  associatedtype Data: Decodable
+  var unrestrictedValue: Value? { get }
+  var value: Value { get }
+  var data: Data? { get }
+  var type: SuggestionType { get }
+}
+extension FioSuggestion {
+  public var type: SuggestionType { .fio }
 }
 
-extension Suggestion  {
-  public static func == (lhs: Self, rhs: Self) -> Bool {
+extension AddressSuggestion {
+  public var type: SuggestionType { .address }
+}
+
+public extension Suggestion {
+  static func == (lhs: Self, rhs: Self) -> Bool {
     lhs.value == rhs.value
   }
 
-  public func hash(into hasher: inout Hasher) {
+  func hash(into hasher: inout Hasher) {
     hasher.combine(value)
   }
 
-  public var id: String {
+  var id: String {
     value
   }
 
-  public var description: String {
+  var description: String {
     value
   }
+}
 
+
+// MARK: - SuggestionType
+
+public enum SuggestionType {
+  case address
+  case fio
+}
+
+public enum IIDadataError: Error {
+  case noSuggestions
 }
