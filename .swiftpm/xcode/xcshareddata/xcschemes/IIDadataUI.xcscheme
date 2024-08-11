@@ -21,6 +21,20 @@
                ReferencedContainer = "container:">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "IIDadataUI"
+               BuildableName = "IIDadataUI"
+               BlueprintName = "IIDadataUI"
+               ReferencedContainer = "container:">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -50,9 +64,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "IIDadata"
-            BuildableName = "IIDadata"
-            BlueprintName = "IIDadata"
+            BlueprintIdentifier = "IIDadataUI"
+            BuildableName = "IIDadataUI"
+            BlueprintName = "IIDadataUI"
             ReferencedContainer = "container:">
          </BuildableReference>
       </MacroExpansion>

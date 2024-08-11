@@ -13,7 +13,8 @@ import SwiftUI
   /// This view modifier is designed to work as a part of a view hierarchy and should be applied to a view to enable popover presentation.
   ///
   /// For iOS 15 compatibility, it includes a workaround for the missing `@StateObject` property wrapper, which uses an internal `Root` to manage the anchor view.
-  public struct FloatingPopover<Item, PopoverContent>: ViewModifier where Item: Identifiable, PopoverContent: View {
+@available(iOS 15.0, *)
+public struct FloatingPopover<Item, PopoverContent>: ViewModifier where Item: Hashable, PopoverContent: View {
     // Workaround for missing @StateObject in iOS 15.
     private struct Parent {
       var anchorView = UIView()
@@ -34,6 +35,7 @@ import SwiftUI
       /// - Parameter context: The context of the UIViewRepresentable.
       /// - Returns: A UIView with a background color of white.
       func makeUIView(context _: Self.Context) -> Self.UIViewType {
+//        context.coordinator.anchorView
         uiView.backgroundColor = UIColor.white
         return uiView
       }
@@ -44,6 +46,7 @@ import SwiftUI
       ///   - uiView: The UIView instance to be updated.
       ///   - context: The context of the UIViewRepresentable.
       func updateUIView(_ uiView: Self.UIViewType, context _: Self.Context) {
+        uiView.backgroundColor = UIColor.white
         self.uiView = uiView
       }
     }
@@ -92,7 +95,10 @@ import SwiftUI
       ///   - controller: The presentation controller.
       ///   - traitCollection: The trait collection of the interface environment.
       /// - Returns: The modal presentation style, which is `.popover` for this implementation.
-      func adaptivePresentationStyle(for _: UIPresentationController, traitCollection _: UITraitCollection) -> UIModalPresentationStyle {
+      func adaptivePresentationStyle(
+        for _: UIPresentationController,
+        traitCollection _: UITraitCollection
+      ) -> UIModalPresentationStyle {
         return .popover
       }
 
@@ -145,8 +151,8 @@ import SwiftUI
         let bool: Bool? = isPresented.wrappedValue
         return bool
       }, set: {
-        guard let _ = $0 else { isPresented.wrappedValue = false; return }
-        isPresented.wrappedValue = true
+        guard let bool = $0 else { isPresented.wrappedValue = false; return }
+        isPresented.wrappedValue = bool
       })
       contentOptional = contentBlock
     }
@@ -165,18 +171,18 @@ import SwiftUI
           presentPopover(with: item)
         }
       }
-      return Button(action: {
-        withAnimation(.bouncy) {
-          if let item = item {
-            withAnimation(.bouncy) {
-              presentPopover(with: item)
-            }
-          }
-        }
-      }, label: {
-        content
-          .background(InternalAnchorView(uiView: perent.anchorView).background(Color.black))
-      })
+//      return Button(action: {
+//        if let item = item {
+//          withAnimation(.bouncy) {
+//            presentPopover(with: item)
+//          }
+//        }
+//
+//      }, label: {
+      return content
+
+        .background(InternalAnchorView(uiView: perent.anchorView).background(.bar, in: .containerRelative))
+//      })
     }
 
     // Functions
@@ -254,8 +260,8 @@ import SwiftUI
 
      - Note: On iOS 16.4 and later, the popover is presented using the native popover modifier with a fixed size and `.popover` adaptation. On earlier versions, a custom `FloatingPopover` modifier is used.
      */
-    @ViewBuilder
-    func floatingPopover<Item: Identifiable>(
+    @ViewBuilder @available(iOS 15.0, *)
+    func floatingPopover<Item: Hashable>(
       item: Binding<Item?>,
       @ViewBuilder content: @escaping (Item) -> some View
     ) -> some View {
@@ -281,20 +287,12 @@ import SwiftUI
 
      - Note: On iOS 16.4 and later, the popover is presented using the native popover modifier with a fixed size and `.popover` adaptation. On earlier versions, a custom `FloatingPopover` modifier is used.
      */
-    @ViewBuilder
+    @ViewBuilder @available(iOS 15.0, *)
     func floatingPopover(
       isPresented: Binding<Bool>,
       @ViewBuilder content: @escaping () -> some View
     ) -> some View {
-      if #available(iOS 16.4, *) {
-        popover(isPresented: isPresented) {
-          content()
-            .presentationCompactAdaptation(.popover)
-            .fixedSize()
-        }
-      } else {
-        modifier(FloatingPopover(isPresented: isPresented, contentBlock: content))
-      }
+      modifier(FloatingPopover(isPresented: isPresented, contentBlock: content))
     }
   }
 #endif
