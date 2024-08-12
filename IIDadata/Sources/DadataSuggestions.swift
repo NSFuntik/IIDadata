@@ -1,10 +1,11 @@
-import Foundation
 import protocol Combine.ObservableObject
+import Foundation
+
 @available(iOS 14.0, *)
 public actor DadataSuggestions: ObservableObject {
   // Static Properties
 
-  private static var sharedInstance: DadataSuggestions?
+  public static var sharedInstance: DadataSuggestions?
 
   // Properties
 
@@ -26,6 +27,7 @@ public actor DadataSuggestions: ObservableObject {
   public init() throws {
     let key = try DadataSuggestions.readAPIKeyFromPlist()
     self.init(apiKey: key)
+    Self.sharedInstance = self
   }
 
   /// This init checks connectivity once the class instance is set.
@@ -45,12 +47,14 @@ public actor DadataSuggestions: ObservableObject {
   public init(api: String /* , checkWithTimeout timeout: Int */ ) throws {
     self.init(apiKey: api)
     Task { try await checkAPIConnectivity() }
+    Self.sharedInstance = self
   }
 
   /// New instance of DadataSuggestions.
   /// - Parameter apiKey: Dadata API token. Check it in account settings at dadata.ru.
-  public /*required*/ init(apiKey: String) {
+  public /* required */ init(apiKey: String) {
     self.init(apiKey: apiKey, url: Constants.suggestionsAPIURL)
+    Self.sharedInstance = self
   }
 
   private init(apiKey: String, url: String) {

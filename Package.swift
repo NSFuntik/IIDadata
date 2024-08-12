@@ -21,11 +21,7 @@ let package = Package(
     .library(
       name: "IIDadataUI",
       targets: ["IIDadata", "IIDadataUI"]
-    ),
-    .executable(
-      name: "IIDadataExample",
-      targets: ["IIDadata", "IIDadataUI", "Example"]
-    ),
+    )
   ],
   dependencies: [
     // Dependencies declare other packages that this package depends on.

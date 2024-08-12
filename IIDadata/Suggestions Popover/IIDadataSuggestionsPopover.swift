@@ -28,7 +28,7 @@ import SwiftUI
 public struct IIDadataSuggestsPopover<S: Suggestion>: ViewModifier {
   /// The action to perform when a suggestion is selected.
   /// - Parameter isPresentingPopover: An input parameter that indicates whether the popover is presented.
-  public typealias OnSuggestionSelected = (String) -> Void
+  public typealias OnSuggestionSelected = (S) -> Void
 
   // Properties
 
@@ -39,6 +39,8 @@ public struct IIDadataSuggestsPopover<S: Suggestion>: ViewModifier {
   @Binding var text: String
   /// The list of suggestions.
   @Binding var suggestions: [S]?
+
+  let viewID = UUID().uuidString
 
   /// The DadataSuggestions instance for fetching suggestions.
   @ObservedObject private var dadata: DadataSuggestions
@@ -64,7 +66,7 @@ public struct IIDadataSuggestsPopover<S: Suggestion>: ViewModifier {
     dadata: DadataSuggestions,
     suggestions: Binding<[S]?>,
     isPresented: Binding<Bool>,
-    onSuggestionSelected: @escaping (String) -> Void
+    onSuggestionSelected: @escaping (S) -> Void
   ) where S: Suggestion {
     _dadata = ObservedObject(wrappedValue: dadata)
     _text = text
@@ -87,7 +89,7 @@ public struct IIDadataSuggestsPopover<S: Suggestion>: ViewModifier {
     input text: Binding<String>,
     suggestions: Binding<[S]?>,
     isPresented: Binding<Bool>,
-    onSuggestionSelected: @escaping (String) -> Void
+    onSuggestionSelected: @escaping (S) -> Void
   ) where S: Suggestion {
     _dadata = ObservedObject(wrappedValue: DadataSuggestions(apiKey: apiKey))
     _text = text
@@ -98,29 +100,46 @@ public struct IIDadataSuggestsPopover<S: Suggestion>: ViewModifier {
 
   // Content
 
+  @ViewBuilder
   public func body(content: Content) -> some View {
+    if #available(iOS 16.4, *) {
+      main(content).popover(isPresented: $isPopoverPresented) {
+        content
+          .presentationCompactAdaptation(.popover)
+          .fixedSize()
+      }
+    } else {
+      main(content).popover(
+        isPresented: $isPopoverPresented,
+        arrowEdge: .bottom,
+        content: popoverContent
+      )
+    }
+  }
+
+  @ViewBuilder
+  public func main(_ content: Content) -> some View {
     content
+
       .onAppear {
         isPopoverPresented = !text.isEmpty
       }
-
       .onChange(of: text, perform: getSuggestions(for:))
-      .floatingPopover(isPresented: $isPopoverPresented, content: popoverContent)
   }
 
   @ViewBuilder
   func popoverContent() -> some View {
-    if let suggestions = suggestions?.compactMap(\.value) {
+    if let suggestions = suggestions?.compactMap(\.self) {
       SuggestionsPopover(
         with: suggestions,
         onSelect: { suggestion in
-          text = suggestion
+          text = suggestion.value
           onSuggestionSelected(suggestion)
           if suggestions.count == 1 {
             isPopoverPresented = false
           }
         }
-      )
+      ).fixedSize()
     } else {
       VStack {
         ProgressView().progressViewStyle(.circular)
@@ -201,8 +220,7 @@ extension IIDadataSuggestsPopover {
       let suggestions = try await dadata.suggestFio(
         text,
         count: 10,
-        gender: .male,
-        parts: [.surname, .name, .patronymic]
+        gender: .male
       )
       dump(suggestions, name: "FIO Suggestion for: \(text)")
       return suggestions as [FioSuggestion]
@@ -210,6 +228,7 @@ extension IIDadataSuggestsPopover {
       self.error = "Error fetching FIO suggestions: \(error)"
       throw error
     } catch {
+      self.error = "Error fetching FIO suggestions: \(error)"
       throw IIDadataError.unknown(error.localizedDescription)
     }
   }
@@ -229,12 +248,11 @@ extension IIDadataSuggestsPopover {
   /// - Returns: An array of `AddressSuggestion` objects representing the fetched suggestions.
   /// - SeeAlso: ``DadataSuggestions``
   func getAddressSuggestions(for text: String) async throws(IIDadata.IIDadataError) -> [AddressSuggestion] {
+    guard !text.isEmpty else {
+      suggestions = nil
+      throw IIDadataError.invalidInput
+    }
     do {
-      guard !text.isEmpty else {
-        suggestions = nil
-        throw IIDadataError.invalidInput
-      }
-
       guard let suggestions = try await dadata.suggestAddress(
         text,
         queryType: .address,
@@ -252,6 +270,7 @@ extension IIDadataSuggestsPopover {
       self.error = "Error fetching Address Suggestions: \(error)"
       throw error
     } catch {
+      self.error = "Error fetching Address Suggestions: \(error)"
       throw IIDadataError.unknown(error.localizedDescription)
     }
   }
@@ -269,11 +288,11 @@ extension IIDadataSuggestsPopover {
 ///
 /// - Returns: A `View` that displays a list of suggestions.
 @available(iOS 15.0, *)
-public struct SuggestionsPopover: View {
+public struct SuggestionsPopover<S: Suggestion>: View {
   // Properties
 
-  var suggestions: [Suggestion.Value]
-  let onSelect: (String) -> Void
+  var suggestions: [S]
+  let onSelect: (S) -> Void
 
   let maxWidth: CGFloat = UIScreen.main.bounds.width - 44
 
@@ -285,8 +304,8 @@ public struct SuggestionsPopover: View {
   ///   - suggestions: An array of `Suggestion.Value` to be displayed.
   ///   - onSelect: A closure that gets executed when a suggestion is selected.
   init(
-    with suggestions: [Suggestion.Value],
-    onSelect: @escaping (String) -> Void
+    with suggestions: [S],
+    onSelect: @escaping (S) -> Void
   ) {
     self.suggestions = suggestions
     self.onSelect = onSelect
@@ -300,17 +319,17 @@ public struct SuggestionsPopover: View {
         ForEach(suggestions, id: \.self, content: SelectedSuggestionView(_:))
       }
       .padding(8)
-      .background(.bar)
+      .background(.regularMaterial)
       .animation(.interactiveSpring, value: suggestions)
     }
   }
 
   @ViewBuilder
-  func SelectedSuggestionView(_ suggestion: Suggestion.Value) -> some View {
+  func SelectedSuggestionView(_ suggestion: S) -> some View {
     Button(action: {
       onSelect(suggestion)
     }) {
-      Text(suggestion)
+      Text(suggestion.value)
         .font(
           .system(.subheadline, design: .rounded)
         )
@@ -343,12 +362,12 @@ public extension View {
   ///
   /// - Returns: A view with the `IIDadataSuggestsPopover` modifier applied.
   @ViewBuilder @available(iOS 15.0, *)
-  func iidadataSuggestions<T: Suggestion>(
+  func iidadataSuggestions<S: Suggestion>(
     apiKey: String,
     input text: Binding<String>,
-    suggestions: Binding<[T]?>,
+    suggestions: Binding<[S]?>,
     isPresented: Binding<Bool>,
-    onSuggestionSelected: @escaping (String) -> Void
+    onSuggestionSelected: @escaping (S) -> Void
   ) -> some View {
     modifier(
       IIDadataSuggestsPopover(
@@ -374,77 +393,12 @@ public extension View {
   ///
   /// - Returns: A view with the `IIDadataSuggestsPopover` modifier applied.
   @available(iOS 15.0, *)
-  @ViewBuilder func iidadataSuggestions<T: Suggestion>(
+  @ViewBuilder func iidadataSuggestions<S: Suggestion>(
     dadata: DadataSuggestions,
     input text: Binding<String>,
-    suggestions: Binding<[T]?>,
+    suggestions: Binding<[S]?>,
     isPresented: Binding<Bool>,
-    onSuggestionSelected: @escaping (String) -> Void
-  ) -> some View {
-    modifier(
-      IIDadataSuggestsPopover(
-        input: text,
-        dadata: dadata,
-        suggestions: suggestions,
-        isPresented: isPresented,
-        onSuggestionSelected: onSuggestionSelected
-      )
-    )
-  }
-}
-
-// MARK: - View Extension
-
-public extension View {
-  /// A view modifier to display suggestions for the given input using `Dadata`  API.
-  ///
-  /// This extension provides an easy way to apply the `IIDadataSuggestsPopover` view modifier to any `View`.
-  ///
-  /// - Parameters:
-  ///   - apiKey: The API key for the `Dadata` API.
-  ///   - text: A binding to the input text.
-  ///   - suggestions: A binding to the list of suggestions.
-  ///   - onSuggestionSelected: A closure to handle the selection of a suggestion.
-  ///
-  /// - Returns: A view with the `IIDadataSuggestsPopover` modifier applied.
-  @ViewBuilder @available(iOS 15.0, *)
-  func iidadataSuggestions(
-    apiKey: String,
-    input text: Binding<String>,
-    suggestions: Binding<[FioSuggestion]?>,
-    isPresented: Binding<Bool>,
-    onSuggestionSelected: @escaping (String) -> Void
-  ) -> some View {
-    modifier(
-      IIDadataSuggestsPopover(
-        apiKey: apiKey,
-        input: text,
-        suggestions: suggestions,
-        isPresented: isPresented,
-        onSuggestionSelected: onSuggestionSelected
-      )
-    )
-  }
-
-  /// A view modifier to display suggestions for the given input using `Dadata`  API.
-  ///
-  /// This extension provides an easy way to apply the `IIDadataSuggestsPopover` view modifier to any `View`.
-  ///
-  /// - Parameters:
-  ///   - apiKey: The API key for the `Dadata` API.
-  ///   - text: A binding to the input text.
-  ///   - suggestions: A binding to the list of suggestions.
-  ///   - isPresented: A binding to a boolean value that indicates whether the  popover is presented.
-  ///   - onSuggestionSelected: A closure to handle the selection of a suggestion.
-  ///
-  /// - Returns: A view with the `IIDadataSuggestsPopover` modifier applied.
-  @available(iOS 15.0, *)
-  @ViewBuilder func iidadataSuggestions(
-    dadata: DadataSuggestions,
-    input text: Binding<String>,
-    suggestions: Binding<[AddressSuggestion]?>,
-    isPresented: Binding<Bool>,
-    onSuggestionSelected: @escaping (String) -> Void
+    onSuggestionSelected: @escaping (S) -> Void
   ) -> some View {
     modifier(
       IIDadataSuggestsPopover(
@@ -479,7 +433,7 @@ public extension View {
     @State var isFioSuggestionsPresented = true
     @State var isAddressSuggestionsPresented = true
 
-    @StateObject private var dadata: DadataSuggestions
+    @StateObject private var dadata: DadataSuggestions = DadataSuggestions.sharedInstance.unsafelyUnwrapped
 
     // Lifecycle
 
@@ -488,55 +442,41 @@ public extension View {
     /// The API key is fetched from the environment variables.
     init() {
       let apiKey = ProcessInfo.processInfo.environment["IIDadataAPIToken"] ?? ""
-      _dadata = StateObject(wrappedValue: DadataSuggestions(apiKey: apiKey))
+      DadataSuggestions.sharedInstance = DadataSuggestions(apiKey: apiKey)
     }
 
     // Content
 
-    @ViewBuilder
-    func IIDadataSuggestionsView<T: Suggestion>(
-      inputText: Binding<String>,
-      suggestions: Binding<[T]?>,
-      placeholder: String,
-      isPresented: Binding<Bool>,
-      onSuggestionSelected: @escaping (String) -> Void
-    ) -> some View {
-      TextField(
-        placeholder,
-        text: inputText
-      )
-      .font(.body)
-      .textFieldStyle(.roundedBorder)
-      .tint(.blue)
-      .iidadataSuggestions(
-        dadata: dadata,
-        input: inputText,
-        suggestions: suggestions,
-        isPresented: isPresented,
-        onSuggestionSelected: onSuggestionSelected
-      )
-      .padding(8)
-    }
-
     var body: some View {
       VStack(spacing: 16) {
-        IIDadataSuggestionsView(
-          inputText: $address,
-          suggestions: $addressSuggestions,
-          placeholder: "Enter address",
-          isPresented: .constant(true),
-          onSuggestionSelected: {
-            fio = $0
-          }
+        TextField(
+          "Enter address",
+          text: $address
         )
-        IIDadataSuggestionsView(
-          inputText: $fio,
+        .font(.body)
+        .textFieldStyle(.roundedBorder)
+        .tint(.blue).clipped()
+        .iidadataSuggestions(
+          dadata: dadata,
+          input: $address,
+          suggestions: $addressSuggestions,
+          isPresented: $isAddressSuggestionsPresented,
+          onSuggestionSelected: { address = $0.value }
+        )
+
+        TextField(
+          "Enter Full Name",
+          text: $fio
+        )
+        .font(.body)
+        .textFieldStyle(.roundedBorder)
+        .tint(.blue)
+        .iidadataSuggestions(
+          dadata: dadata,
+          input: $fio,
           suggestions: $fioSuggestions,
-          placeholder: "Enter Full Name",
-          isPresented: .constant(true),
-          onSuggestionSelected: {
-            fio = $0
-          }
+          isPresented: $isFioSuggestionsPresented,
+          onSuggestionSelected: { fio = $0.value }
         )
       }
       .padding()

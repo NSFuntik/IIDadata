@@ -46,7 +46,7 @@ struct IIDadataDemo: View {
         isPresented: $isPresented
       ) { s in
         debugPrint(s)
-        text = s
+        text = s.value
         if suggestions?.count == 1 {
           isPresented = false
         }
