@@ -415,7 +415,7 @@ extension IIDadataSuggestsPopover {
 					.focused($isFocused, equals: false)
 					.textFieldStyle(.roundedBorder)
 					.tint(.blue).background(.white).frame(height: 56).clipped()
-					.iidadataSuggestions(
+					.withDadataSuggestions(
 						dadata: dadata,
 						input: $fio,
 						suggestions: $fioSuggestions,
