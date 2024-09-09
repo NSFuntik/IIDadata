@@ -18,7 +18,7 @@ struct IIDadataDemo: View {
   @State var text = "Миха"
   @State var suggestions: [FioSuggestion]? {
     willSet {
-      debugPrint(suggestions, separator: "\n ● ")
+      debugPrint(suggestions ?? [], separator: "\n ● ")
     }
   }
   @State var isPresented = false
@@ -27,7 +27,7 @@ struct IIDadataDemo: View {
   // Lifecycle
 
   init() {
-    apiKey = ProcessInfo.processInfo.environment["IIDadataAPIToken"] ?? "abadf779d0525bebb9e16b72a97eabf4f7143292"
+    apiKey = ProcessInfo.processInfo.environment["IIDadataAPIToken"] ?? ""
 
     _suggestions = State(initialValue: [])
   }
@@ -39,11 +39,11 @@ struct IIDadataDemo: View {
       .textFieldStyle(RoundedBorderTextFieldStyle())
       .padding()
       .font(.body)
-      .iidadataSuggestions(
+      .withDadataSuggestions(
         apiKey: apiKey,
         input: $text,
         suggestions: $suggestions,
-        isPresented: $isPresented
+				textfieldHeight: 44		
       ) { s in
         debugPrint(s)
         text = s.value

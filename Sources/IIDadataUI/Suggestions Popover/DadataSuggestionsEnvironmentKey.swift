@@ -23,13 +23,14 @@ public extension View {
 	/// - Returns: A view with the `IIDadataSuggestsPopover` modifier applied.
 	@available(iOS 15.0, *) @ViewBuilder
 	func withDadataSuggestions<S: Suggestion>(
+    isPresented: Binding<Bool> = .constant(true),
 		apiKey: String,
 		input text: Binding<String>,
 		suggestions: Binding<[S]?>,
 		textfieldHeight: CGFloat,
 		onSuggestionSelected: @escaping (S) -> Void
-	) throws -> some View {
-		try modifier(
+	) -> some View {
+		 modifier(
 			IIDadataSuggestsPopover(
 				apiKey: apiKey,
 				input: text,
@@ -37,7 +38,7 @@ public extension View {
 				textfieldHeight: textfieldHeight,
 				onSuggestionSelected: onSuggestionSelected
 			)
-		).environment(\.dadataSuggestions, DadataSuggestions.shared(apiKey: apiKey))
+		).environment(\.dadataSuggestions, try? DadataSuggestions.shared(apiKey: apiKey))
 	}
 
 	/// A view modifier to display suggestions for the given input using `Dadata`  API.
@@ -54,6 +55,7 @@ public extension View {
 	/// - Returns: A view with the `IIDadataSuggestsPopover` modifier applied.
 	@available(iOS 15.0, *) @ViewBuilder
 	func withDadataSuggestions<S: Suggestion>(
+    isPresented: Binding<Bool> = .constant(true),
 		dadata: DadataSuggestions,
 		input text: Binding<String>,
 		suggestions: Binding<[S]?>,

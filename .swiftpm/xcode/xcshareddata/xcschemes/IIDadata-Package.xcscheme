@@ -43,20 +43,6 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "IIDadataExample"
-               BuildableName = "IIDadataExample"
-               BlueprintName = "IIDadataExample"
-               ReferencedContainer = "container:">
-            </BuildableReference>
-         </BuildActionEntry>
-         <BuildActionEntry
-            buildForTesting = "YES"
-            buildForRunning = "YES"
-            buildForProfiling = "YES"
-            buildForArchiving = "YES"
-            buildForAnalyzing = "YES">
-            <BuildableReference
-               BuildableIdentifier = "primary"
                BlueprintIdentifier = "Example"
                BuildableName = "Example"
                BlueprintName = "Example"
@@ -94,22 +80,12 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
+      <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "Example"
             BuildableName = "Example"
             BlueprintName = "Example"
-            ReferencedContainer = "container:">
-         </BuildableReference>
-      </BuildableProductRunnable>
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "IIDadataExample"
-            BuildableName = "IIDadataExample"
-            BlueprintName = "IIDadataExample"
             ReferencedContainer = "container:">
          </BuildableReference>
       </MacroExpansion>
@@ -120,8 +96,7 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
+      <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "Example"
@@ -129,7 +104,7 @@
             BlueprintName = "Example"
             ReferencedContainer = "container:">
          </BuildableReference>
-      </BuildableProductRunnable>
+      </MacroExpansion>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">
