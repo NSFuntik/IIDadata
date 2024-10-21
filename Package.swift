@@ -37,7 +37,11 @@ let package = Package(
 		),
 		.target(
 			name: "IIDadata",
-			dependencies: []
+			dependencies: [],
+			swiftSettings: [
+                .define("SWIFT_PACKAGE"),
+                .unsafeFlags(["-enable-library-evolution"]),
+             ]
 		),
 		.target(
 			name: "IIDadataUI",
