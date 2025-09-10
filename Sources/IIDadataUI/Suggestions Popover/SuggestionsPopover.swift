@@ -153,6 +153,7 @@ public extension IIDadataSuggestsPopover {
 				// Convert the String.Index range to an AttributedString.Index range
 				if let range = Range(stringRange, in: attributedString) {
 					attributedString[range].font = .callout.weight(.medium)
+                    attributedString[range].foregroundColor = .primary
 				}
 			}
 			return attributedString
