@@ -131,7 +131,7 @@ public actor DadataSuggestions: ObservableObject {
 		constraints: [AddressQueryConstraint]? = nil,
 		regionPriority: [RegionPriority]? = nil,
 		upperScaleLimit: ScaleLevel? = nil,
-		lowerScaleLimit: ScaleLevel? = nil,
+        lowerScaleLimit: ScaleLevel? = .house,
 		trimRegionResult: Bool = false
 	) async throws -> AddressSuggestionResponse {
 		let suggestionQuery = AddressSuggestionQuery(query, ofType: queryType)
